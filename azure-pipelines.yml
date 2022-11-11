@@ -43,18 +43,18 @@ stages:
                command: 'buildAndPush'
                Dockerfile: '**/Dockerfile'
                tags: '$(TAG)'
-- stage: ScanImage
-  jobs:
-      - job: ScanImage
-        steps:
-        - task: AzureCLI@2
-          inputs:
-            azureSubscription: 'Azure subscription 1(9078aa0e-b859-4da0-a323-033c14ce20a4)'
-            scriptType: 'pscore'
-            scriptLocation: 'scriptPath'
-            scriptPath: '/home/vsts/work/1/s/scripts/ImageScanSummaryAssessmentGate.ps1'
-            arguments: '-registryName testazuredevopsappacr -repository test-azure-devops-cont-repo -tag $(Build.BuildId)'
-            powerShellErrorActionPreference: 'silentlyContinue'
+#- stage: ScanImage
+#  jobs:
+#      - job: ScanImage
+#        steps:
+#        - task: AzureCLI@2
+#          inputs:
+#            azureSubscription: 'Azure subscription 1(9078aa0e-b859-4da0-a323-033c14ce20a4)'
+#            scriptType: 'pscore'
+#            scriptLocation: 'scriptPath'
+#            scriptPath: '/home/vsts/work/1/s/scripts/ImageScanSummaryAssessmentGate.ps1'
+#            arguments: '-registryName testazuredevopsappacr -repository test-azure-devops-cont-repo -tag $(Build.BuildId)'
+#            powerShellErrorActionPreference: 'silentlyContinue'
 - stage: DeployDev
   jobs:
       - job: DeployDev
