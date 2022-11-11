@@ -19,7 +19,7 @@
 #  displayName: 'Run a multi-line script'
 
 trigger:
-- main
+- master
 
 pool: 
     vmImage: 'ubuntu-latest'
