@@ -2,18 +2,72 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+#
+#trigger:
+#- master
+#
+#pool:
+#  vmImage: ubuntu-latest
+#
+#steps:
+#- script: echo Hello, world!
+#  displayName: 'Run a one-line script'
+#
+#- script: |
+#    echo Add other tasks to build, test, and deploy your project.
+#    echo See https://aka.ms/yaml
+#  displayName: 'Run a multi-line script'
 
 trigger:
-- master
+- main
 
-pool:
-  vmImage: ubuntu-latest
+pool: 
+    vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  IMAGE_REGISTRY_CONNECTION: 'testing-devops-registry'
+  IMAGE_REGISTRY: 'testazuredevopsappacr'
+  IMAGE_REPOSITORY: 'test-azure-devops-cont-repo'
+  TAG: '$(Build.BuildId)'
+  SOURCE_DIR: '$(Build.SourceDirectory)'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+- stage: BuildApp
+  jobs:
+      - job: BuildPushImage
+        steps:
+            - task: Docker@2
+              inputs:
+               containerRegistry: '$(IMAGE_REGISTRY_CONNECTION)'
+               repository: '$(IMAGE_REPOSITORY)'
+               command: 'buildAndPush'
+               Dockerfile: '**/Dockerfile'
+               tags: '$(TAG)'
+- stage: ScanImage
+  jobs:
+      - job: ScanImage
+        steps:
+        - task: AzureCLI@2
+          inputs:
+            azureSubscription: 'Azure subscription 1(9078aa0e-b859-4da0-a323-033c14ce20a4)'
+            scriptType: 'pscore'
+            scriptLocation: 'scriptPath'
+            scriptPath: '/home/vsts/work/1/s/scripts/ImageScanSummaryAssessmentGate.ps1'
+            arguments: '-registryName testazuredevopsappacr -repository test-azure-devops-cont-repo -tag $(Build.BuildId)'
+            powerShellErrorActionPreference: 'silentlyContinue'
+- stage: DeployDev
+  jobs:
+      - job: DeployDev
+        steps:
+          - task: AzureRmWebAppDeployment@4
+            inputs:
+              ConnectionType: 'AzureRM'
+              azureSubscription: 'Azure subscription 1(9078aa0e-b859-4da0-a323-033c14ce20a4)'
+              appType: 'webAppContainer'
+              WebAppName: 'test-azure-devops-app'
+              DockerNamespace: '$(IMAGE_REGISTRY)'
+              DockerRepository: '$(IMAGE_REPOSITORY)'
+              DockerImageTag: '$(TAG)'
+              
+              
+
